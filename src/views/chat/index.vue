@@ -516,13 +516,13 @@ async function loadMoreMessage(event: any) {
     nextTick(() => scrollTo(event.target.scrollHeight - scrollPosition))
   }, () => {
     loadingms = ms.loading(
-      '加载中...', {
+      'Loading...', {
         duration: 0,
       },
     )
   }, () => {
     allmsg && allmsg.destroy()
-    allmsg = ms.warning('没有更多了', {
+    allmsg = ms.warning('No more messages above', {
       duration: 1000,
     })
   })

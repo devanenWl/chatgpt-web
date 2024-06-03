@@ -71,9 +71,9 @@ function addCopyEvents() {
         const code = btn.parentElement?.nextElementSibling?.textContent
         if (code) {
           copyToClip(code).then(() => {
-            btn.textContent = '复制成功'
+            btn.textContent = t('chat.copied')
             setTimeout(() => {
-              btn.textContent = '复制代码'
+              btn.textContent = t('chat.copyCode')
             }, 1000)
           })
         }
@@ -107,11 +107,10 @@ onUnmounted(() => {
 <template>
   <div class="text-black" :class="wrapClass">
     <div ref="textRef" class="leading-relaxed break-words">
-      <div v-if="!inversion" class="flex items-end">
+      <div class="flex items-end">
         <div v-if="!asRawText" class="w-full markdown-body" :class="{ 'markdown-body-generate': loading }" v-html="text" />
         <div v-else class="w-full whitespace-pre-wrap" v-text="text" />
       </div>
-      <div v-else class="whitespace-pre-wrap" v-text="text" />
       <img v-for="(v, i) of images" :key="i" :src="`/uploads/${v}`" alt="" width="160px">
     </div>
   </div>

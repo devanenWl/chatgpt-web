@@ -50,8 +50,8 @@ const message = useMessage()
 
 const textRef = ref<HTMLElement>()
 
-const asRawText = ref(props.inversion)
-
+const asRawText = ref(false)
+	
 const messageRef = ref<HTMLElement>()
 
 const indexRef = ref<number>(0)
@@ -73,13 +73,11 @@ const options = computed(() => {
     },
   ]
 
-  if (!props.inversion) {
-    common.unshift({
+  common.unshift({
       label: asRawText.value ? t('chat.preview') : t('chat.showRawText'),
       key: 'toggleRenderType',
       icon: iconRender({ icon: asRawText.value ? 'ic:outline-code-off' : 'ic:outline-code' }),
-    })
-  }
+	})
 
   if (props.isRecord) {
     const index = common.findIndex(item => item.key === 'delete')
