@@ -58,8 +58,9 @@ export async function sendTestMail(toMail: string, config: MailConfig) {
 }
 
 async function sendMail(toMail: string, subject: string, html: string, config: MailConfig) {
+	const configs = (await getCacheConfig())
   const mailOptions = {
-    from: `${config.siteConfig.siteTitle} <${config.smtpFrom || config.smtpUserName}>`,
+    from: `${configs.siteConfig.siteTitle} <${config.smtpFrom || config.smtpUserName}>`,
     to: toMail,
     subject,
     html,
