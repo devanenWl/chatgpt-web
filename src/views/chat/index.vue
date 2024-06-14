@@ -628,7 +628,7 @@ function handleDeleteUploadFile() {
 const uploadHeaders = computed(() => {
   const token = useAuthStore().token
   return {
-    Authorization: `Bearer ${token}`,
+    Authorization2: `Bearer ${token}`,
   }
 })
 

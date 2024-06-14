@@ -27,7 +27,7 @@ async function auth(req, res, next) {
 
   if (config.siteConfig.loginEnabled) {
     try {
-      const token = req.header('Authorization').replace('Bearer ', '')
+      const token = req.header('Authorization2').replace('Bearer ', '')
       const info = jwt.verify(token, config.siteConfig.loginSalt.trim()) as AuthJwtPayload
       req.headers.userId = info.userId
       const user = await getUserById(info.userId)
@@ -65,10 +65,10 @@ async function getUserId(req: Request): Promise<string | undefined> {
       return user._id.toString()
     }
 
-    // no Authorization info is received without login
-    if (!(req.header('Authorization') as string))
+    // no Authorization2 info is received without login
+    if (!(req.header('Authorization2') as string))
       return null // '6406d8c50aedd633885fa16f'
-    token = req.header('Authorization').replace('Bearer ', '')
+    token = req.header('Authorization2').replace('Bearer ', '')
 
     const info = jwt.verify(token, config.siteConfig.loginSalt.trim()) as AuthJwtPayload
     return info.userId

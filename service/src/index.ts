@@ -65,7 +65,7 @@ app.use('/uploads', express.static('uploads'))
 
 app.all('*', (_, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Headers', 'authorization, Content-Type')
+  res.header('Access-Control-Allow-Headers', 'Authorization2, Content-Type')
   res.header('Access-Control-Allow-Methods', '*')
   next()
 })

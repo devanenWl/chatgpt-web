@@ -28,7 +28,7 @@ async function rootAuth(req, res, next) {
 
   if (config.siteConfig.loginEnabled) {
     try {
-      const token = req.header('Authorization').replace('Bearer ', '')
+      const token = req.header('Authorization2').replace('Bearer ', '')
       const info = jwt.verify(token, config.siteConfig.loginSalt.trim()) as AuthJwtPayload
       req.headers.userId = info.userId
       const user = await getUserById(info.userId)
