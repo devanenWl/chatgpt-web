@@ -39,7 +39,8 @@ const mdi = new MarkdownIt({
 mdi.use(mila, { attrs: { target: '_blank', rel: 'noopener' } })
 mdi.use(mdKatex, { 
   blockClass: 'katexmath-block rounded-md p-[10px]', 
-  errorColor: ' #cc0000'
+  errorColor: ' #cc0000',
+	trust: true
 })
 
 const wrapClass = computed(() => {
