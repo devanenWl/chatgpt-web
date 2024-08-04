@@ -56,21 +56,29 @@ const wrapClass = computed(() => {
   ]
 })
 
-function replaceEquationDelimiters(text: string): string {
-  // Replace inline equations
-  text = text.replace(/\\\((.*?)\\\)/g, '$$$$1$$');
-  
-  // Replace block equations
-  text = text.replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$$\n$1\n$$$$$$');
-  
-  return text;
+function escapeBrackets(text: string) {
+  const pattern =
+    /(```[\s\S]*?```|`.*?`)|\\\[([\s\S]*?[^\\])\\\]|\\\((.*?)\\\)/g;
+  return text.replace(
+    pattern,
+    (match, codeBlock, squareBracket, roundBracket) => {
+      if (codeBlock) {
+        return codeBlock;
+      } else if (squareBracket) {
+        return `$$${squareBracket}$$`;
+      } else if (roundBracket) {
+        return `$${roundBracket}$`;
+      }
+      return match;
+    },
+  );
 }
+
 
 const text = computed(() => {
   let value = props.text ?? '';
   if (!props.asRawText) {
-    value = replaceEquationDelimiters(value);
-		console.log(value);
+    value = escapeBrackets(value);
     return mdi.render(value);
   }
   return value;
