@@ -39,13 +39,7 @@ const mdi = new MarkdownIt({
 mdi.use(mila, { attrs: { target: '_blank', rel: 'noopener' } })
 mdi.use(mdKatex, { 
   blockClass: 'katexmath-block rounded-md p-[10px]', 
-  errorColor: ' #cc0000',
-  delimiters: [
-    {left: "$$", right: "$$", display: true},
-    {left: "\\[", right: "\\]", display: true},
-    {left: "$", right: "$", display: false},
-    {left: "\\(", right: "\\)", display: false}
-  ]
+  errorColor: ' #cc0000'
 })
 
 const wrapClass = computed(() => {
@@ -63,11 +57,13 @@ const wrapClass = computed(() => {
 })
 
 const text = computed(() => {
-  const value = props.text ?? ''
-  if (!props.asRawText)
-    return mdi.render(value)
-  return value
-})
+  let value = props.text ?? '';
+  if (!props.asRawText) {
+    value = replaceEquationDelimiters(value);
+    return mdi.render(value);
+  }
+  return value;
+});
 
 function highlightBlock(str: string, lang?: string) {
   return `<pre class="code-block-wrapper"><div class="code-block-header"><span class="code-block-header__lang">${lang}</span><span class="code-block-header__copy">${t('chat.copyCode')}</span></div><code class="hljs code-block-body ${lang}">${str}</code></pre>`
@@ -99,6 +95,16 @@ function removeCopyEvents() {
       btn.removeEventListener('click', () => {})
     })
   }
+}
+
+function replaceEquationDelimiters(text: string): string {
+  // Replace inline equations
+  text = text.replace(/\\\((.*?)\\\)/g, '$$$$1$$');
+  
+  // Replace block equations
+  text = text.replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$$\n$1\n$$$$$$');
+  
+  return text;
 }
 
 onMounted(() => {
