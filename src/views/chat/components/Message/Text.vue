@@ -56,10 +56,21 @@ const wrapClass = computed(() => {
   ]
 })
 
+function replaceEquationDelimiters(text: string): string {
+  // Replace inline equations
+  text = text.replace(/\\\((.*?)\\\)/g, '$$$$1$$');
+  
+  // Replace block equations
+  text = text.replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$$\n$1\n$$$$$$');
+  
+  return text;
+}
+
 const text = computed(() => {
   let value = props.text ?? '';
   if (!props.asRawText) {
     value = replaceEquationDelimiters(value);
+		console.log(value);
     return mdi.render(value);
   }
   return value;
@@ -95,16 +106,6 @@ function removeCopyEvents() {
       btn.removeEventListener('click', () => {})
     })
   }
-}
-
-function replaceEquationDelimiters(text: string): string {
-  // Replace inline equations
-  text = text.replace(/\\\((.*?)\\\)/g, '$$$$1$$');
-  
-  // Replace block equations
-  text = text.replace(/\\\[([\s\S]*?)\\\]/g, '$$$$$$\n$1\n$$$$$$');
-  
-  return text;
 }
 
 onMounted(() => {
