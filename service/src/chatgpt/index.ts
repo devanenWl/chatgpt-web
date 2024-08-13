@@ -95,8 +95,8 @@ export async function initApi(key: KeyConfig, chatModel: string, maxContextCount
     }
     // If none of the above, use the default values
     else {
-      options.maxModelTokens = 4096
-      options.maxResponseTokens = 1024
+      options.maxModelTokens = 128000
+      options.maxResponseTokens = 4096
     }
 
     if (isNotEmptyString(OPENAI_API_BASE_URL))
