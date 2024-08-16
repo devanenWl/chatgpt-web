@@ -196,6 +196,7 @@ async function chatReplyProcess(options: RequestOptions) {
         process?.(partialResponse)
       },
     })
+		response.id = `chatcmpl-${Math.random().toString(36).substring(2, 10)}`
     return sendResponse({ type: 'Success', data: response })
   }
   catch (error: any) {
