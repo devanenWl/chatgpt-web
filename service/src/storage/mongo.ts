@@ -194,7 +194,7 @@ export async function updateRoomChatModel(userId: string, roomId: number, chatMo
 }
 
 export async function getChatRooms(userId: string) {
-  const cursor = roomCol.find({ userId, status: { $ne: Status.Deleted } })
+  const cursor = roomCol.find({ userId, status: { $ne: Status.Deleted } }).allowDiskUse(true);
   const rooms = []
   for await (const doc of cursor)
     rooms.push(doc)
