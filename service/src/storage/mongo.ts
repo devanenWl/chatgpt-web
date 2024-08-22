@@ -284,7 +284,7 @@ export async function getChatRoomsCount(userId: string, page: number, size: numb
   ]
   Array.prototype.push.apply(agg, agg2)
 
-  const cursor = roomCol.aggregate(agg).allowDiskUse(true);
+  const cursor = roomCol.aggregate(agg, { allowDiskUse: true });
   const data = await cursor.toArray()
   return { total, data }
 }
