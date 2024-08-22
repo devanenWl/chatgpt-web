@@ -202,92 +202,60 @@ export async function getChatRooms(userId: string) {
 }
 
 export async function getChatRoomsCount(userId: string, page: number, size: number) {
-  let total = 0
-  const skip = (page - 1) * size
-  const limit = size
-  const agg = []
-  if (userId !== null && userId !== 'undefined' && userId !== undefined && userId.trim().length !== 0) {
-    agg.push({
-      $match: {
-        userId,
-      },
-    })
-    total = await roomCol.countDocuments({ userId })
-  }
-  else {
-    total = await roomCol.countDocuments()
-  }
-  const agg2 = [
+  const skip = (page - 1) * size;
+  const limit = size;
+  const matchStage = userId && userId.trim() ? { userId } : {};
+
+  const total = await roomCol.countDocuments(matchStage);
+
+  const agg = [
+    { $match: matchStage },
     {
       $lookup: {
         from: 'chat',
-        localField: 'roomId',
-        foreignField: 'roomId',
-        as: 'chat',
-      },
-    }, {
-      $addFields: {
-        title: '$chat.prompt',
-        user_ObjectId: {
-          $toObjectId: '$userId',
-        },
-      },
-    }, {
+        let: { roomId: '$roomId' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$roomId', '$$roomId'] } } },
+          { $sort: { dateTime: -1 } },
+          { $limit: 1 }
+        ],
+        as: 'latestChat'
+      }
+    },
+    { $unwind: { path: '$latestChat', preserveNullAndEmptyArrays: true } },
+    {
       $lookup: {
         from: 'user',
-        localField: 'user_ObjectId',
-        foreignField: '_id',
-        as: 'user',
-      },
-    }, {
-      $unwind: {
-        path: '$user',
-        preserveNullAndEmptyArrays: false,
-      },
-    }, {
-      $sort: {
-        'chat.dateTime': -1,
-      },
-    }, {
-      $addFields: {
-        chatCount: {
-          $size: '$chat',
-        },
-        chat: {
-          $arrayElemAt: [
-            {
-              $slice: [
-                '$chat', -1,
-              ],
-            }, 0,
-          ],
-        },
-      },
-    }, {
+        let: { userId: { $toObjectId: '$userId' } },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$_id', '$$userId'] } } },
+          { $project: { name: 1 } }
+        ],
+        as: 'user'
+      }
+    },
+    { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+    {
       $project: {
         userId: 1,
-        title: '$chat.prompt',
+        title: '$latestChat.prompt',
         username: '$user.name',
         roomId: 1,
-        chatCount: 1,
-        dateTime: '$chat.dateTime',
-      },
-    }, {
-      $sort: {
-        dateTime: -1,
-      },
-    }, {
-      $skip: skip,
-    }, {
-      $limit: limit,
+        dateTime: '$latestChat.dateTime',
+        chatCount: { $cond: [{ $ifNull: ['$latestChat', false] }, 1, 0] }
+      }
     },
-  ]
-  Array.prototype.push.apply(agg, agg2)
+    { $sort: { dateTime: -1 } },
+    { $skip: skip },
+    { $limit: limit }
+  ];
 
-  const cursor = roomCol.aggregate(agg, { allowDiskUse: true });
-  const data = await cursor.toArray()
-  return { total, data }
+  const cursor = roomCol.aggregate(agg);
+  const data = await cursor.toArray();
+
+  return { total, data };
 }
+
 
 export async function getChatRoom(userId: string, roomId: number) {
   return await roomCol.findOne({ userId, roomId, status: { $ne: Status.Deleted } }) as ChatRoom
