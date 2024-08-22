@@ -204,26 +204,37 @@ export async function getChatRooms(userId: string) {
 export async function getChatRoomsCount(userId: string, page: number, size: number) {
   const skip = (page - 1) * size;
   const limit = size;
+  // Tạo điều kiện lọc sớm để giảm lượng dữ liệu cần xử lý
   const matchStage = userId && userId.trim() ? { userId } : {};
 
+  // Đếm tổng số documents trước khi thực hiện aggregation
   const total = await roomCol.countDocuments(matchStage);
 
   const agg = [
+    // Lọc dữ liệu ngay từ đầu để giảm khối lượng xử lý
     { $match: matchStage },
     {
+      // Thực hiện $lookup để lấy thông tin chat và đếm số lượng
       $lookup: {
         from: 'chat',
         let: { roomId: '$roomId' },
         pipeline: [
           { $match: { $expr: { $eq: ['$roomId', '$$roomId'] } } },
-          { $sort: { dateTime: -1 } },
-          { $limit: 1 }
+          {
+            $group: {
+              _id: null,
+              latestChat: { $last: '$$ROOT' },
+              chatCount: { $sum: 1 }
+            }
+          }
         ],
-        as: 'latestChat'
+        as: 'chatInfo'
       }
     },
-    { $unwind: { path: '$latestChat', preserveNullAndEmptyArrays: true } },
+    // Chuyển mảng chatInfo thành object đơn lẻ
+    { $unwind: { path: '$chatInfo', preserveNullAndEmptyArrays: true } },
     {
+      // Tối ưu hóa $lookup cho user để chỉ lấy thông tin cần thiết
       $lookup: {
         from: 'user',
         let: { userId: { $toObjectId: '$userId' } },
@@ -234,27 +245,34 @@ export async function getChatRoomsCount(userId: string, page: number, size: numb
         as: 'user'
       }
     },
+    // Chuyển mảng user thành object đơn lẻ
     { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
     {
+      // Chỉ lấy các trường cần thiết để giảm kích thước dữ liệu
       $project: {
         userId: 1,
-        title: '$latestChat.prompt',
+        title: '$chatInfo.latestChat.prompt',
         username: '$user.name',
         roomId: 1,
-        dateTime: '$latestChat.dateTime',
-        chatCount: { $cond: [{ $ifNull: ['$latestChat', false] }, 1, 0] }
+        dateTime: '$chatInfo.latestChat.dateTime',
+        // Giữ nguyên Chat Count
+        chatCount: { $ifNull: ['$chatInfo.chatCount', 0] }
       }
     },
+    // Sắp xếp sau khi đã giảm kích thước dữ liệu
     { $sort: { dateTime: -1 } },
+    // Áp dụng skip và limit cuối cùng để giảm lượng dữ liệu trả về
     { $skip: skip },
     { $limit: limit }
   ];
 
+  // Không sử dụng allowDiskUse vì không được hỗ trợ trong M0
   const cursor = roomCol.aggregate(agg);
   const data = await cursor.toArray();
 
   return { total, data };
 }
+
 
 
 export async function getChatRoom(userId: string, roomId: number) {
