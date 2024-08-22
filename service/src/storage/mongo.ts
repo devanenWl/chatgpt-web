@@ -194,7 +194,7 @@ export async function updateRoomChatModel(userId: string, roomId: number, chatMo
 }
 
 export async function getChatRooms(userId: string) {
-  const cursor = roomCol.find({ userId, status: { $ne: Status.Deleted } }).allowDiskUse(true);
+  const cursor = roomCol.find({ userId, status: { $ne: Status.Deleted } })
   const rooms = []
   for await (const doc of cursor)
     rooms.push(doc)
@@ -284,7 +284,7 @@ export async function getChatRoomsCount(userId: string, page: number, size: numb
   ]
   Array.prototype.push.apply(agg, agg2)
 
-  const cursor = roomCol.aggregate(agg)
+  const cursor = roomCol.aggregate(agg).allowDiskUse(true);
   const data = await cursor.toArray()
   return { total, data }
 }
